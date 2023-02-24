@@ -1,4 +1,16 @@
 const inquirer = require("inquirer");
+const mysql = require('mysql2');
+
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: 'password',
+      database: 'employees_db'
+    },
+    console.log(`Connected to the employees_db database.`)
+  );
+  
 
 const log = console.log
 
@@ -68,19 +80,81 @@ function viewEmployees(){
 function addDepartment(){
     /*WHEN I choose to add a department
     THEN I am prompted to enter the name of the department and that department is added to the database*/
-    mainMenu();
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'Enter name of department:',
+                name: 'name'
+            }
+        ])
+        .then((ans) => {
+            log(ans.name);
+            //add to database
+            mainMenu();
+        })
+    
 }
 
 function addRole(){
     /*WHEN I choose to add a role
     THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database*/
-    mainMenu();
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'Enter role name:',
+                name: 'name'
+            },
+            {
+                type: 'input',
+                message: 'Enter role salary:',
+                name: 'salary'
+            },
+            {
+                type: 'input',
+                message: 'Enter role department:',
+                name: 'dept'
+            }
+        ])
+        .then((ans) => {
+            log(ans.name + ans.salary + ans.dept);
+            //add to database
+            mainMenu();
+        })
 }
 
 function addEmployee(){
     /*WHEN I choose to add an employee
     THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database*/
-    mainMenu();
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: "Enter employee's first name:",
+                name: 'fName'
+            },
+            {
+                type: 'input',
+                message: "Enter employee's last name:",
+                name: 'lName'
+            },
+            {
+                type: 'input',
+                message: "Enter employee's role:",
+                name: 'role'
+            },
+            {
+                type: 'input',
+                message: "Enter employee's manager:",
+                name: 'manager'
+            }
+        ])
+        .then((ans) => {
+            log(ans.fName + ans.lName + ans.role + ans.manager);
+            //add to database
+            mainMenu();
+        })
 }
 
 function updateRole(){
