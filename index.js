@@ -63,28 +63,34 @@ function viewDepartments(){
     db.query(
         'SELECT * FROM department',
         function(err, results) {
-          table(results);
-          mainMenu();
+            log(' ');
+            table(results);
+            log(' ')
+            mainMenu();
         }
       );
 }
 
 function viewRoles(){
     db.query(
-        'SELECT * FROM role',
+        'SELECT role.title, role.salary, department.name FROM role LEFT JOIN department ON department.id = role.department_id',
         function(err, results) {
-          table(results);
-          mainMenu();
+            log(' ')
+            table(results);
+            log(' ')
+            mainMenu();
         }
       );
 }
 
 function viewEmployees(){
     db.query(
-        'SELECT * FROM employee',
+        'SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, employee.manager_id FROM employee JOIN role ON role.id = employee.role_Id',
         function(err, results) {
-          table(results);
-          mainMenu();
+            log(' ')
+            table(results);
+            log(' ')
+            mainMenu();
         }
       );
 }
