@@ -15,6 +15,7 @@ const db = mysql.createConnection(
 const log = console.log
 const table = console.table
 
+
 function init (){
     log("Welcome to Employee Tracker");
     mainMenu();
@@ -89,39 +90,43 @@ function viewEmployees(){
 }
 
 function addDepartment(){
-    /*WHEN I choose to add a department
-    THEN I am prompted to enter the name of the department and that department is added to the database*/
-    //error if department already exists 
     inquirer
         .prompt([
             {
                 type: 'input',
                 message: 'Enter name of department:',
-                name: 'name'
+                name: 'dept'
             }
         ])
         .then((ans) => {
-           db.query(
-                `INSERT INTO department (name) VALUES ("${ans.name}")`,
-                function(err, results) {
-                  log(`${ans.name} department added`)
-                  mainMenu();
+            db.query(
+                `SELECT id FROM department WHERE name = '${ans.dept}'`,
+                function (err, results) {
+                    if (results.length > 0){
+                        log('Error: Department already exists')
+                        mainMenu();
+                    } else {
+                        db.query(
+                            `INSERT INTO department (name) VALUES ("${ans.dept}")`,
+                            function(err, results) {
+                              log(`${ans.name} department added`)
+                              mainMenu();
+                            }
+                        );
+                    }
                 }
-              );
+            )
         })
     
 }
 
 function addRole(){
-    /*WHEN I choose to add a role
-    THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database*/
-    //error if role already exists 
     inquirer
         .prompt([
             {
                 type: 'input',
                 message: 'Enter role name:',
-                name: 'name'
+                name: 'role'
             },
             {
                 type: 'input',
@@ -135,13 +140,37 @@ function addRole(){
             }
         ])
         .then((ans) => {
+            let deptId
             db.query(
-                `INSERT INTO role (title, salary, department_id) VALUES ("${ans.name}", "${ans.salary}", "${ans.dept}")`,
-                function(err, results) {
-                  log(`${ans.name} role added to ${ans.dept} department`)
-                  mainMenu();
+                `SELECT id FROM role WHERE title = '${ans.role}'`,
+                function (err, results) {
+                    if (results.length > 0){
+                        log('Error: Role already exists')
+                        mainMenu();
+                    } else {
+                        db.query(
+                            `SELECT id FROM department WHERE name = '${ans.dept}'`,
+                            function (err, results) {
+                                if (results.length < 1){
+                                    log("Error: Department doesn't exist");
+                                    mainMenu();
+                                } else {
+                                    deptId = JSON.stringify(results[0]);
+                                    deptId = deptId.slice(6, deptId.length-1)
+                                    deptId = parseInt(deptId);
+                                }
+                                db.query(
+                                    `INSERT INTO role (title, salary, department_id) VALUES ("${ans.role}", "${ans.salary}", "${deptId}")`,
+                                    function(err, results) {
+                                      log(`${ans.role} role successfully added`)
+                                      mainMenu();
+                                    }
+                                  );
+                            }
+                        )
+                    }
                 }
-              );
+            );
         })
 }
 
@@ -165,31 +194,65 @@ function addEmployee(){
             },
             {
                 type: 'input',
-                message: "Enter employee's manager:",
-                name: 'manager'
+                message: "Enter employee's manager's first name:",
+                name: 'mngerFname'
+            },
+            {
+                type: 'input',
+                message: "Enter employee's manager's last name:",
+                name: 'mngerLname'
             }
         ])
         .then((ans) => {
-            //need to add error if the role or manager doesnt exist
-            //error if employee already exists 
-            //convert role name to role id and manager name to manager id
+            let roleId;
+            let mngrId;
             db.query(
-                `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.fName}", "${ans.lName}", "${ans.role}", "${ans.manager}")`,
+                `SELECT id FROM employee WHERE first_name = '${ans.fName}' AND last_name = '${ans.lName}'`,
                 function(err, results) {
-                  log(`${ans.fName} ${ans.lName} added`)
-                  mainMenu();
+                    if (results.length > 0){
+                        log('Error: Employee already exists')
+                        mainMenu();
+                    } else {
+                        db.query(
+                            `SELECT id FROM role WHERE title = '${ans.role}'`,
+                            function (err, results){
+                                if (results.length < 1){
+                                    log('Error: Role not found')
+                                    mainMenu();
+                                } else {
+                                    roleId = JSON.stringify(results[0]);
+                                    roleId = roleId.slice(6, roleId.length-1)
+                                    roleId = parseInt(roleId);
+                                }
+                                db.query(
+                                    `SELECT id FROM employee WHERE first_name = '${ans.mngerFname}' AND last_name = '${ans.mngerLname}'`,
+                                    function (err, results){
+                                        if (results.length < 1){
+                                            log('Error: Manager name not found')
+                                            mainMenu();
+                                        } else {
+                                            mngrId = JSON.stringify(results[0]);
+                                            mngrId = mngrId.slice(6, mngrId.length-1)
+                                            mngrId = parseInt(mngrId);
+                                        }
+                                        db.query(
+                                            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${ans.fName}", "${ans.lName}", "${roleId}", "${mngrId}")`,
+                                            function(err, results) {
+                                              log("Employee successfully added")
+                                              mainMenu();
+                                            }
+                                        );
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
-            );
+            )
         })
 }
 
 function updateRole(){
-    /*WHEN I choose to update an employee role
-    THEN I am prompted to select an employee to update and their new role and this information is updated in the database*/
-    //convert role name to id
-    //update in sql
-    //go back to main menu
-
     inquirer
         .prompt([
             {
@@ -233,8 +296,6 @@ function updateRole(){
                             roleId = roleId.slice(6, roleId.length-1)
                             roleId = parseInt(roleId);
                         }
-                        log(empId)
-                        log(roleId)
                         db.query(
                             `UPDATE employee SET role_id = '${roleId}' WHERE id = '${empId}'`,
                             function (err, results) {
