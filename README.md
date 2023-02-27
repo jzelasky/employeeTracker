@@ -16,7 +16,7 @@ Note: To install this program you must already have node.js and mysql installed 
 
 1. Download this repository on your local device.
 
-2. Open the `employeeTracker` directory in your console.
+2. Open the `employeeTracker` directory in your command line.
 
 3. Run the command `npm i`.
 
